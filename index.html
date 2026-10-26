@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Scam Spotter: Inbox, Messages &amp; Phone</title>
+<style>
+:root{--bg:#eef1fb;--card:#fff;--ink:#1c2233;--mute:#5d667d;--line:#dde2ee;--acc:#4f46e5;--accink:#fff;--good:#15803d;--goodbg:#dcfce7;--miss:#b45309;--missbg:#fef3c7;--bad:#be123c;--badbg:#ffe4e6;--sel:#e0e7ff;--bub:#e9ecf5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1220;--card:#1a1e33;--ink:#eef0fa;--mute:#a3abc6;--line:#2c3252;--acc:#818cf8;--accink:#0f1220;--good:#4ade80;--goodbg:#14341f;--miss:#fbbf24;--missbg:#3a2c0a;--bad:#fb7185;--badbg:#3d1420;--sel:#2b3166;--bub:#262c4a}}
+:root[data-theme="dark"]{--bg:#0f1220;--card:#1a1e33;--ink:#eef0fa;--mute:#a3abc6;--line:#2c3252;--acc:#818cf8;--accink:#0f1220;--good:#4ade80;--goodbg:#14341f;--miss:#fbbf24;--missbg:#3a2c0a;--bad:#fb7185;--badbg:#3d1420;--sel:#2b3166;--bub:#262c4a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:900px;margin:0 auto;padding:12px}
+button{font:inherit;cursor:pointer;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);padding:9px 14px;transition:transform .1s}
+button:active{transform:scale(.96)}
+button.primary{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:700}
+button.scam{background:var(--bad);color:#fff;border-color:var(--bad);font-weight:700}
+button.safe{background:var(--good);color:#fff;border-color:var(--good);font-weight:700}
+@media (prefers-color-scheme:dark){button.safe{color:#0f1220}button.scam{color:#0f1220}}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+h1{font-size:1.35rem;margin:0}
+.chips{display:flex;gap:6px}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:3px 12px;font-weight:700;font-size:.9rem}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden;margin-bottom:10px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,#f59e0b,#ec4899,#6366f1);transition:width .4s}
+.nav{display:flex;gap:8px;margin-bottom:10px}
+.nav button{flex:1;font-weight:700;position:relative}
+.nav button.on{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.nav b{background:var(--bad);color:#fff;border-radius:99px;font-size:.72rem;padding:1px 7px;margin-left:4px}
+.box{display:grid;grid-template-columns:290px 1fr;background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:480px}
+.list{border-right:1px solid var(--line);overflow:auto;max-height:78vh}
+.item{display:flex;gap:10px;padding:11px 12px;border-bottom:1px solid var(--line);cursor:pointer;align-items:center}
+.item:hover,.item.cur{background:var(--sel)}
+.av{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#fff;font-size:1.05rem}
+.it{min-width:0;flex:1}
+.it b,.it span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.it span{color:var(--mute);font-size:.88rem}
+.it.unread b{font-weight:800}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--acc);flex:none}
+.stat{flex:none;font-size:1.2rem}
+.reader{padding:14px;overflow:auto;max-height:78vh}
+.empty{display:grid;place-items:center;height:100%;color:var(--mute);text-align:center;padding:30px}
+.back{display:none;margin-bottom:8px}
+.msg{white-space:pre-wrap;overflow-wrap:anywhere}
+.mh{border-bottom:1px solid var(--line);padding-bottom:8px;margin-bottom:12px;color:var(--mute)}
+.hint{font-size:.88rem;color:var(--mute);margin:0 0 8px}
+.bub{max-width:88%;padding:8px 12px;border-radius:18px 18px 18px 4px;margin:6px 0;background:var(--bub)}
+.bub.speaking{outline:3px solid var(--acc);transform:scale(1.02)}
+.who{font-size:.75rem;color:var(--mute);margin:8px 0 0}
+.phone{text-align:center;padding:10px 0}
+.phone .big{font-size:3rem;margin:0}
+.p{cursor:pointer;border-radius:4px;padding:0 1px;border-bottom:2px dotted transparent}
+.p:hover{border-bottom-color:var(--acc)}
+.p.sel{background:var(--sel);border-bottom:2px solid var(--acc)}
+.p.ok{background:var(--goodbg);border-bottom:2px solid var(--good)}
+.p.miss{background:var(--missbg);border-bottom:2px solid var(--miss)}
+.p.bad{background:var(--badbg);border-bottom:2px solid var(--bad);text-decoration:line-through}
+.done .p{cursor:default}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.actions button{flex:1;min-width:140px}
+.fb{border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:6px;animation:pop .35s}
+.fb h3{margin:0 0 6px}
+.fb ul{padding-left:18px;margin:6px 0}.fb li{margin:4px 0}
+.k-ok{color:var(--good);font-weight:700}.k-miss{color:var(--miss);font-weight:700}.k-bad{color:var(--bad)}
+.pts{position:fixed;left:50%;top:40%;font-size:2.2rem;font-weight:900;color:var(--acc);pointer-events:none;animation:fly 1.1s forwards;z-index:9}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:none;opacity:1}}
+@keyframes fly{from{transform:translate(-50%,0);opacity:1}to{transform:translate(-50%,-90px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.fb,.pts{animation:none}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:10px 0}
+.rules div{border:1px solid var(--line);border-radius:10px;padding:8px;font-size:.92rem}
+.hero{font-size:3.5rem;margin:0;text-align:center}
+@media (max-width:700px){.box{grid-template-columns:1fr}.list{max-height:none;border-right:0}.box.reading .list{display:none}.box:not(.reading) .reader{display:none}.back{display:inline-block}}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>🕵️ Scam Spotter</h1><div class="chips"><span class="chip" id="prog">0/10</span><span class="chip" id="score">⭐ 0</span></div></div>
+<div class="bar"><i id="pbar" style="width:0"></i></div>
+<div class="nav" id="nav"></div>
+<div id="app"></div>
+</main>
+<script>
+var S=[
+{id:"e1",type:"email",n:"StreamFlix Support",pv:"URGENT: Account suspended in 24 hours!!",t:"9:02",col:"#e11d48",
+ head:[["From: StreamFlix Support <",0],["help@streamf1ix-billing.com","The sender’s address is a fake lookalike (the “l” is a number 1, and “billing.com” isn’t the real company)."],[">\nSubject: ",0],["URGENT: Account suspended in 24 hours!!","Scammers rush you with scary deadlines so you won’t stop and think."]],
+ msgs:[{parts:[["",0],["Dear user,","Real companies usually use your name. “Dear user” means a mass email."],["\n\nWe could not process your last payment. ",0],["Your account will be deleted in 24 hours unless you act now.","Threat plus deadline: a classic pressure tactic."],["\n\n",0],["[ Verify my account ]","A button like this can lead to a fake login page. Never click it; open the real app or site yourself."],["\n\nYou will need to enter your ",0],["password and card details","No real company asks for your password by email."],[" to confirm.\n\nThanks,\nStreamFlix Team",0]]}]},
+{id:"e2",type:"email",n:"GameVerse Rewards",pv:"🎉 You WON 10,000 free coins!!!",t:"8:15",col:"#7c3aed",
+ head:[["From: GameVerse Rewards <",0],["winner@gameverse-prizes.net","Not the company’s real address. Prize-sounding domains are a red flag."],[">\nSubject: ",0],["🎉 You WON 10,000 free coins!!!","Too good to be true. You can’t win a contest you never entered."]],
+ msgs:[{parts:[["Congratulatons! You are our lucky player of the day.","Spelling mistakes (“Congratulatons”) are common in scam messages."],["\n\nTo claim your prize, reply with your ",0],["username and password","Never share your password with anyone, not even someone claiming to be support."],[" so we can add the coins.\n\n",0],["Only 3 gifts left, claim in the next 10 minutes!","Fake scarcity and a ticking clock stop you thinking clearly."],["\n\nGameVerse Team",0]]}]},
+{id:"e3",type:"email",legit:1,n:"Riverdale Library",pv:"Your book is due on Friday",t:"Yesterday",col:"#0d9488",
+ why:["It uses your name and mentions a book you really borrowed.","The sender address matches the library’s real website.","It doesn’t ask for passwords, codes or money, and there’s no panic or secrecy.","The safe move is still to renew in the library’s own app or at the desk, not through a surprise link."],
+ head:[["From: Riverdale Library <notices@riverdalelibrary.org>\nSubject: Your book is due on Friday",0]],
+ msgs:[{parts:[["Hi Sam,\n\nA friendly reminder that “The Wild Robot” is due back this Friday. You can renew it in the library app or drop by the front desk any time. No fee applies if it’s returned on time.\n\nHappy reading!\nRiverdale Library Team",0]]}]},
+{id:"e4",type:"email",n:"Principal Harris",pv:"Quick favor",t:"Mon",col:"#ea580c",
+ head:[["From: Principal Harris <",0],["principal.harris.office88@gmail.com","A real school principal would use the school’s official email, not a random free account."],[">\nSubject: Quick favor",0]],
+ msgs:[{parts:[["Hi,\n\nI’m in a meeting and can’t talk. ",0],["I need you to buy 4 gift cards for a surprise staff gift and send me the codes.","Asking for gift card codes is one of the biggest scam signs. Gift cards are almost impossible to trace."],[" ",0],["Please keep this between us and reply fast.","Secrecy and speed stop you from checking with someone you trust."],["\n\nI’ll pay you back tomorrow.\n\nPrincipal Harris\n",0],["Sent from my iPhone","Easy to fake. A signature proves nothing."]]}]},
+{id:"s1",type:"sms",n:"ParcelGo",pv:"Your package could not be delivered…",t:"10:20",col:"#f59e0b",
+ head:[["ParcelGo · ",0],["+1 (555) 019-2287","Parcel companies rarely text from a random personal-looking number."]],
+ msgs:[{who:"them",parts:[["ParcelGo: your package could not be delivered. ",0],["Pay a $1.99 redelivery fee","Small fees trick you into typing card details on a fake site."],[" at ",0],["parcelgo-redeliver.top/pay","Odd web address with a strange ending. Real companies use their official site."],[" ",0],["or it will be returned within 12 hours.","Urgency again."]]}]},
+{id:"s2",type:"sms",n:"Unknown number",pv:"Hi it’s me! I got a new phone…",t:"11:45",col:"#0ea5e9",
+ head:[["Unknown number",0]],
+ msgs:[{who:"them",parts:[["Hi it’s me! ",0],["I got a new phone so this is my new number.","Scammers pretend to be friends or family. Call the person on their old number to check."]]},{who:"them",parts:[["I’m locked out of my account. ",0],["Can you send me the 6-digit code you just got?","Verification codes are for you only. Sharing one lets someone take over your account."]]},{who:"them",parts:[["Please hurry, it’s kind of an emergency 🙏","Rushing and emotional pressure."]]}]},
+{id:"s3",type:"sms",n:"MyBank Alert",pv:"Unusual login detected…",t:"12:30",col:"#16a34a",
+ head:[["MyBank Alert · ",0],["84733","A short-code number can be spoofed, so it isn’t proof by itself."]],
+ msgs:[{who:"them",parts:[["MyBank: Unusual login detected. ",0],["Reply with your PIN to cancel it, or tap","Banks never ask for your PIN or password by text."],[" ",0],["mybank-secure-verify.co/lock","A look-alike link. Go to the bank’s real app, or call the number on your card."],[" ",0],["Act now to avoid account closure.","A threat of losing something, to rush you."]]}]},
+{id:"c1",type:"call",n:"Unknown caller",pv:"Incoming call",t:"now",col:"#475569",
+ head:[["Incoming call: ",0],["“Unknown caller”","Hidden caller ID. Real support doesn’t cold-call you."]],
+ msgs:[{who:"Caller",parts:[["Hello, this is Mark from TechShield. ",0],["We detected a dangerous virus on your computer.","You never contacted them, and companies can’t see viruses on your device. It’s made up to scare you."]]},{who:"Caller",parts:[["I need you to ",0],["install a remote access app so I can fix it.","This gives a stranger full control of your device."],[" It’s free!",0]]},{who:"Caller",parts:[["Don’t hang up, ",0],["your files will be lost if you do.","A scare tactic to keep you on the line."]]}]},
+{id:"c2",type:"call",n:"+1 (555) 014-7712",pv:"Incoming call",t:"now",col:"#b91c1c",
+ head:[["Incoming call: +1 (555) 014-7712",0]],
+ msgs:[{who:"Caller",parts:[["Hello, I’m Officer Davis. ",0],["Your brother has been in an accident and needs money for bail right now.","Scammers invent emergencies to make you panic. Hang up and call your family member directly."]]},{who:"Caller",parts:[["You must ",0],["pay with gift cards or a money app.","Police and officials never take payment this way."],[" ",0],["Do not tell your parents. It could make things worse.","Secrecy is a huge red flag. Always tell a trusted adult."]]}]},
+{id:"c3",type:"call",n:"MyBank Fraud Dept",pv:"Incoming call",t:"now",col:"#1d4ed8",
+ head:[["Incoming call: ",0],["“MyBank Fraud Dept”","Caller ID can be faked to look like a real bank."]],
+ msgs:[{who:"Caller",parts:[["This is MyBank’s fraud team. Someone is trying to take money from your account. ",0],["I’m sending a security code to your phone; please read it out to me.","That code is the key to the account. A real bank never asks you to read it out."]]},{who:"Caller",parts:[["I can ",0],["stay on the line while you check your phone","Keeping you on the call stops you from thinking or asking anyone."],[" and you’ll be protected.",0]]},{who:"Caller",parts:[["If you ",0],["hang up, the money will be gone","More pressure. The safe move is to hang up and call the number on the back of your card."],[".",0]]}]}
+];
+var TABS=[["email","📧 Mail"],["sms","💬 Messages"],["call","📞 Phone"]];
+var BTN={email:["🚨 Report phishing","✅ Looks safe"],sms:["🚫 Block & report","✅ Looks safe"],call:["📵 Hang up & report","✅ Seems legit"]};
+var tab="email",cur=null,sel={},res={},score=0,uid=0,tok=0,speaking=false;
+var app=document.getElementById("app");
+function $(q){return document.querySelector(q)}
+function esc(t){return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+function find(id){return S.filter(function(s){return s.id==id})[0]}
+function flat(s){return s.head.concat.apply(s.head,s.msgs.map(function(m){return m.parts}))}
+function parts(ps){return ps.map(function(p){
+ if(!p[0])return"";
+ if(!p[0].replace(/\s/g,""))return esc(p[0]);
+ var id="k"+(uid++),r=res[cur],pk=r?r.sel[id]:sel[id],c="";
+ if(r){c=p[1]?(pk?"ok":"miss"):(pk?"bad":"")}else if(pk)c="sel";
+ p[2]=id;return '<span class="p '+c+'" data-id="'+id+'">'+esc(p[0])+'</span>'}).join("")}
+function header(){
+ var n=Object.keys(res).length;
+ $("#prog").textContent=n+"/"+S.length;$("#score").textContent="⭐ "+score;$("#pbar").style.width=(n/S.length*100)+"%";
+ $("#nav").innerHTML=TABS.map(function(t){var un=S.filter(function(s){return s.type==t[0]&&!res[s.id]}).length;
+  return '<button class="'+(tab==t[0]?"on":"")+'" data-t="'+t[0]+'">'+t[1]+(un?'<b>'+un+'</b>':'')+'</button>'}).join("");
+ Array.prototype.forEach.call(document.querySelectorAll("[data-t]"),function(b){b.onclick=function(){stopSpeak();tab=b.dataset.t;cur=null;view()}});
+}
+function view(){
+ header();
+ if(Object.keys(res).length==S.length&&cur==="finish")return finish();
+ var items=S.filter(function(s){return s.type==tab});
+ var h='<div class="box'+(cur?" reading":"")+'"><div class="list">'+items.map(function(s){
+  var r=res[s.id];
+  return '<div class="item'+(cur==s.id?" cur":"")+'" data-o="'+s.id+'"><div class="av" style="background:'+s.col+'">'+(s.type=="call"?"📞":esc(s.n.charAt(0)))+'</div><div class="it'+(r?"":" unread")+'"><b>'+esc(s.n)+'</b><span>'+esc(s.pv)+'</span></div>'+(r?'<span class="stat">'+(r.correct?"✅":"❌")+'</span>':'<span class="dot"></span>')+'</div>'}).join("")+'</div><div class="reader">'+reader()+'</div></div>';
+ if(Object.keys(res).length==S.length)h+='<div class="actions"><button class="primary" id="fin">🏅 See my detective badge</button></div>';
+ app.innerHTML=h;
+ Array.prototype.forEach.call(app.querySelectorAll("[data-o]"),function(el){el.onclick=function(){stopSpeak();cur=el.dataset.o;sel={};view()}});
+ Array.prototype.forEach.call(app.querySelectorAll(".p"),function(el){el.onclick=function(){if(res[cur])return;var d=el.dataset.id;sel[d]=!sel[d];el.classList.toggle("sel",!!sel[d])}});
+ var b;
+ if(b=$("#back"))b.onclick=function(){stopSpeak();cur=null;view()};
+ if(b=$("#v-scam"))b.onclick=function(){verdict(true)};
+ if(b=$("#v-safe"))b.onclick=function(){verdict(false)};
+ if(b=$("#play"))b.onclick=toggleAudio;
+ if(b=$("#fin"))b.onclick=function(){cur="finish";view()};
+}
+function reader(){
+ if(!cur)return '<div class="empty"><div><p style="font-size:2.5rem;margin:0">'+(tab=="email"?"📬":tab=="sms"?"💬":"📱")+'</p>Pick one to open it. Is it a scam, or is it safe?<br>Tap anything that looks suspicious.</div></div>';
+ var s=find(cur);uid=0;var r=res[cur];
+ var h='<button class="back" id="back">← Back</button>';
+ if(s.type=="email"){
+  h+='<div class="mh msg">'+parts(s.head)+'</div><div class="msg">'+parts(s.msgs[0].parts)+'</div>';
+ }else if(s.type=="sms"){
+  h+='<div class="mh msg" style="text-align:center">'+parts(s.head)+'</div>'+s.msgs.map(function(m){return '<div class="bub msg">'+parts(m.parts)+'</div>'}).join("");
+ }else{
+  h+='<div class="phone"><p class="big">📞</p><div class="msg">'+parts(s.head)+'</div><p><button class="primary" id="play">'+(speaking?"⏹ Stop audio":"🔊 Answer & listen")+'</button></p></div>';
+  h+=s.msgs.map(function(m,k){return '<div class="who">'+m.who+' says:</div><div class="bub msg" id="line'+k+'">“'+parts(m.parts)+'”</div>'}).join("");
+ }
+ if(!r){
+  h+='<p class="hint">Tap suspicious words first (optional bonus points), then decide:</p><div class="actions"><button class="scam" id="v-scam">'+BTN[s.type][0]+'</button><button class="safe" id="v-safe">'+BTN[s.type][1]+'</button></div>';
+ }else h+=feedback(s,r);
+ return h;
+}
+function feedback(s,r){
+ var h='<div class="fb"><h3>';
+ if(s.legit)h+=r.correct?"🙌 Right, this one is legit!":"🤦 Oops, that one was actually safe!";
+ else h+=r.correct?"🎉 Nice catch, it’s a scam!":"😬 Careful, that was a scam!";
+ h+=' <small>+'+r.pts+' ⭐</small></h3>';
+ if(s.legit){
+  h+='<b>Why it’s safe:</b><ul>'+s.why.map(function(w){return '<li>'+w+'</li>'}).join("")+'</ul>';
+  if(r.bad)h+='<p class="k-bad">Crossed-out words were fine. Not everything is a scam, so look for pressure, secrets and mismatches.</p>';
+ }else{
+  h+='<b>You found '+r.found+' of '+r.flags+' red flags:</b><ul>'+flat(s).filter(function(p){return p[1]}).map(function(p){var g=r.sel[p[2]];return '<li><span class="'+(g?"k-ok":"k-miss")+'">'+(g?"✔ Spotted":"● Missed")+'</span>: <b>“'+esc(p[0].trim())+'”</b> — '+p[1]+'</li>'}).join("")+'</ul>';
+  if(r.bad)h+='<p class="k-bad">Crossed-out words were fine on their own.</p>';
+  if(!r.correct)h+='<p>Next time: when in doubt, don’t click, don’t reply, and tell an adult.</p>';
+ }
+ return h+'</div>';
+}
+function verdict(saidScam){
+ var s=find(cur),all=flat(s),found=0,flags=0,bad=0;
+ all.forEach(function(p){if(!p[2])return;var k=!!sel[p[2]];if(p[1]){flags++;if(k)found++}else if(k)bad++});
+ var correct=saidScam==!s.legit,pts=Math.max(0,(correct?10:0)+found*2-bad);
+ res[cur]={correct:correct,found:found,flags:flags,bad:bad,pts:pts,sel:JSON.parse(JSON.stringify(sel))};
+ score+=pts;stopSpeak();view();
+ var f=document.createElement("div");f.className="pts";f.textContent=correct?"+"+pts+" ⭐":"Oops!";document.body.appendChild(f);setTimeout(function(){f.remove()},1100);
+ var fb=$(".fb");if(fb)fb.scrollIntoView({block:"nearest",behavior:"smooth"});
+}
+function finish(){
+ var ok=0,flags=0,found=0,max=0;
+ S.forEach(function(s){var r=res[s.id];if(r.correct)ok++;if(!s.legit){flags+=r.flags;found+=r.found;max+=10+r.flags*2}else max+=10});
+ var pct=Math.round(score/max*100);
+ var t=pct>=85?["🏆","Master Detective"]:pct>=60?["🔍","Sharp Sleuth"]:["🐣","Rookie Detective"];
+ app.innerHTML='<div class="card"><p class="hero">'+t[0]+'</p><h2 style="text-align:center;margin:4px 0">'+t[1]+'</h2><p style="text-align:center">'+score+' ⭐ · '+ok+'/'+S.length+' verdicts right · '+found+'/'+flags+' red flags spotted</p></div>'+
+ '<div class="card"><b>The 4-step habit: S.L.A.P.</b><div class="rules"><div><b>🛑 Stop</b><br>Don’t react. Scams want you to rush.</div><div><b>👀 Look</b><br>Check the sender, number and link.</div><div><b>📞 Ask</b><br>Check with the real person or company using details you already trust.</div><div><b>🧑‍🤝‍🧑 Tell</b><br>Show a parent, teacher or trusted adult.</div></div><p>Never share passwords, PINs or codes. Gift cards and secrecy are always red flags. But not every message is a scam, so check before you panic. If you already clicked or shared something, tell an adult right away. You won’t be in trouble.</p></div><div class="actions"><button class="primary" id="again">🔄 Play again</button></div>';
+ $("#again").onclick=function(){res={};score=0;cur=null;sel={};tab="email";view()};
+}
+// Audio: browser text-to-speech plus a simple ring tone
+function stopSpeak(){tok++;speaking=false;if(window.speechSynthesis)speechSynthesis.cancel();
+ Array.prototype.forEach.call(document.querySelectorAll(".speaking"),function(e){e.classList.remove("speaking")});
+ var b=$("#play");if(b)b.textContent="🔊 Answer & listen"}
+function ring(done){
+ try{var C=window.AudioContext||window.webkitAudioContext,c=new C(),t=c.currentTime;
+  [0,0.9].forEach(function(o){[440,480].forEach(function(f){var os=c.createOscillator(),g=c.createGain();os.frequency.value=f;g.gain.value=0.06;os.connect(g);g.connect(c.destination);os.start(t+o);os.stop(t+o+0.6)})});
+  setTimeout(function(){c.close();done()},1700)}catch(e){done()}}
+function toggleAudio(){
+ if(speaking){stopSpeak();return}
+ if(!window.speechSynthesis){alert("Audio isn’t supported in this browser. Read the captions instead!");return}
+ var s=find(cur),my=++tok;speaking=true;$("#play").textContent="⏹ Stop audio";
+ var lines=s.msgs.map(function(m){return m.parts.map(function(p){return p[0]}).join("").replace(/\s+/g," ").trim()});
+ var vs=speechSynthesis.getVoices().filter(function(v){return /^en/i.test(v.lang)}),voice=vs[0];
+ function say(k){
+  if(my!=tok)return;
+  if(k>=lines.length){speaking=false;var b=$("#play");if(b)b.textContent="🔊 Answer & listen";return}
+  var u=new SpeechSynthesisUtterance(lines[k]);u.rate=0.95;u.pitch=0.75;if(voice)u.voice=voice;
+  u.onstart=function(){var e=$("#line"+k);if(e)e.classList.add("speaking")};
+  u.onend=function(){var e=$("#line"+k);if(e)e.classList.remove("speaking");setTimeout(function(){say(k+1)},400)};
+  u.onerror=function(){speaking=false};
+  speechSynthesis.speak(u)}
+ ring(function(){say(0)});
+}
+view();
+</script>
+</body>
+</html>
